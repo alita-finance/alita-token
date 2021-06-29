@@ -3,11 +3,10 @@ pragma solidity >=0.6.12;
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
 // AliToken with Governance.
 contract AliToken is BEP20('Alita Token', 'ALI') {
-    uint public initialBlockReward;
-    uint public period;
-    uint releaseDate;
+    uint public numberBlockperPeriod = 5256000; //365*24*3600/2/3
+    uint startBlock;
 
-    uint [] releasedTokenperPeriod = [
+    uint [] blockRewardperPeriod = [
 
 
     100*10*18, 
@@ -41,14 +40,12 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
         _;
     }
 
-    constructor(uint _initialBlockReward, uint _period) public{
-        initialBlockReward = _initialBlockReward;
-        period = _period;
-        releaseDate = now;
+    constructor(uint _initialBlockReward, uint _startBlock) public{
+        startBlock = _startBlock;
     }
 
-    function getReleasedTokenperPeriod(uint _period) public view returns(uint){
-        return releasedTokenperPeriod[_period];
+    function getblockRewardperPeriod(uint _period) public view returns(uint){
+        return blockRewardperPeriod[_period];
     }
 
     function setMasterChef(address _masterchef) public onlyOwner{
