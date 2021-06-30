@@ -3,50 +3,33 @@ pragma solidity >=0.6.12;
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
 // AliToken with Governance.
 contract AliToken is BEP20('Alita Token', 'ALI') {
-    uint public numberBlockperPeriod = 5256000; //365*24*3600/2/3
     uint startBlock;
+    uint public keepPercent = 80; // The amount of tokens distributed in the next period is 80% of the previous period
 
-    uint [] blockRewardperPeriod = [
+    uint public initialRewardPerBlock = 4052511416000000000; // scaled by 1e18. That means about 4.052511416 ALI per block in the first period
 
+    uint public maxiumPeriodIndex = 9;
 
-    100*10*18, 
-    80*10*18,
-    640000000,
-    512000000,
-    409600000,
-    327680000,
-    262144000,
-    209715200,
-    167772160,
-    134217728
-    ];
+    uint public blockPerPeriod = 5256000;
 
     address public masterChef;
     address public incentive;
 
     /**
-     * @dev Throws if called by any account other than the masterChef.
+     * @dev Throws if called by any account other than the masterChef or incentive.
      */
     modifier onlyWhitelist() {
         require((masterChef == msg.sender) || (incentive == msg.sender), 'ALI: caller is neither the masterChef nor incentive');
         _;
     }
 
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyIncentive() {
-        require(incentive == _msgSender(), 'ALI: caller is not the incentive');
-        _;
-    }
-
-    constructor(uint _initialBlockReward, uint _startBlock) public{
+    constructor(uint _startBlock) public{
         startBlock = _startBlock;
     }
 
-    function getblockRewardperPeriod(uint _period) public view returns(uint){
-        return blockRewardperPeriod[_period];
-    }
+    // function getblockRewardperPeriod(uint _period) public view returns(uint){
+    //     return blockRewardperPeriod[_period];
+    // }
 
     function setMasterChef(address _masterchef) public onlyOwner{
         require(_masterchef != address(0));
