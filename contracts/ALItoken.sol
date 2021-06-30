@@ -8,9 +8,9 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
 
     uint public initialRewardPerBlock = 4052511416000000000; // scaled by 1e18. That means about 4.052511416 ALI per block in the first period
 
-    uint public maxiumPeriodIndex = 9;
+    uint public maxiumPeriodIndex = 9; // Only distribute ALI tokens in 10 periods
 
-    uint public blockPerPeriod = 5256000;
+    uint public blockPerPeriod = 5256000; // About 3 seconds for a block on Binance Smart Chain. A period is about 6 months.
 
     address public masterChef;
     address public incentive;
@@ -25,6 +25,22 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
 
     constructor(uint _startBlock) public{
         startBlock = _startBlock;
+    }
+
+    function getKeepPercent() public view returns(uint){
+        return keepPercent;
+    }
+
+    function getInitialRewardPerBlock() public view returns(uint){
+        return initialRewardPerBlock;
+    }
+
+    function getMaxiumPeriodIndex() public view returns(uint){
+        return maxiumPeriodIndex;
+    }
+
+    function getBlockPerPeriod() public view returns(uint){
+        return blockPerPeriod;
     }
 
     // function getblockRewardperPeriod(uint _period) public view returns(uint){
