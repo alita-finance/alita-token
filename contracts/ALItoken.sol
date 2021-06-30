@@ -3,7 +3,7 @@ pragma solidity >=0.6.12;
 import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
 // AliToken with Governance.
 contract AliToken is BEP20('Alita Token', 'ALI') {
-    uint startBlock;
+    uint public startBlock;
     uint public keepPercent = 80; // The amount of tokens distributed in the next period is 80% of the previous period
 
     uint public initialRewardPerBlock = 4052511416000000000; // scaled by 1e18. That means about 4.052511416 ALI per block in the first period
