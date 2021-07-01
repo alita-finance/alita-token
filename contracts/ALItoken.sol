@@ -1,8 +1,15 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity >=0.6.12;
 
-import "@pancakeswap/pancake-swap-lib/contracts/token/BEP20/BEP20.sol";
+import "./BEP20.sol";
+import './math/SafeMath.sol';
+
 // AliToken with Governance.
 contract AliToken is BEP20('Alita Token', 'ALI') {
+    
+    using SafeMath for uint;
+
     uint public startBlock;
     uint public keepPercent = 80; // The amount of tokens distributed in the next period is 80% of the previous period
 
@@ -12,8 +19,11 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
 
     uint public blockPerPeriod = 5256000; // About 3 seconds for a block on Binance Smart Chain. A period is about 6 months.
 
+    uint public maxSupply = 100000000000000000000000000; // scaled by 1e18. That means 100,000,000 ALI
+
     address public masterChef;
     address public incentive;
+    address public keeper; // first token holder when token is initialized
 
     /**
      * @dev Throws if called by any account other than the masterChef or incentive.
@@ -23,8 +33,15 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
         _;
     }
 
-    constructor(uint _startBlock) public{
-        startBlock = _startBlock;
+    /**
+     * @param _startBlock the block number of starting to calculate the reward
+     * @param _keeper who holds the first minted tokens when initialized
+     * @param _amount the minted token amount is sent to keeper
+     */
+    constructor(uint _startBlock, address _keeper, uint _amount) public{
+        startBlock = _startBlock < block.number ? block.number : _startBlock;
+        keeper = _keeper;
+        _mintForKeeper(_amount);
     }
 
     function getKeepPercent() public view returns(uint){
@@ -43,10 +60,6 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
         return blockPerPeriod;
     }
 
-    // function getblockRewardperPeriod(uint _period) public view returns(uint){
-    //     return blockRewardperPeriod[_period];
-    // }
-
     function setMasterChef(address _masterchef) public onlyOwner{
         require(_masterchef != address(0));
         masterChef = _masterchef;
@@ -58,8 +71,15 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     }
     
     function mint(address _to, uint256 _amount) public onlyWhitelist {
-        _mint(_to, _amount);
-        _moveDelegates(address(0), _delegates[_to], _amount);
+        uint mintAmount = _amount.add(totalSupply()) > maxSupply ? maxSupply.sub(totalSupply()) : _amount;
+        _mint(_to, mintAmount);    
+        _moveDelegates(address(0), _delegates[_to], mintAmount);
+    }
+
+    function _mintForKeeper(uint256 _amount) private {
+        require(keeper != address(0), 'Ali::_mintForKeeper: keeper to the zero address');
+        uint mintAmount = _amount.add(totalSupply()) > maxSupply ? maxSupply.sub(totalSupply()) : _amount;
+        _mint(keeper, mintAmount);  
     }
 
     // Copied and modified from YAM code:
@@ -68,7 +88,7 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     // Which is copied and modified from COMPOUND:
     // https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/Comp.sol
 
-    /// @notice A record of each accounts delegate
+    /// @dev A record of each accounts delegate
     mapping (address => address) internal _delegates;
 
     /// @notice A checkpoint for marking number of votes from a given block
@@ -110,7 +130,7 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
         return _delegates[delegator];
     }
 
-   /**
+    /**
     * @notice Delegate votes from `msg.sender` to `delegatee`
     * @param delegatee The address to delegate votes to
     */
@@ -291,4 +311,20 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
         assembly { chainId := chainid() }
         return chainId;
     }
+
+    function setInitialRewardPerBlock(uint _initialRewardPerBlock) public onlyOwner {
+        initialRewardPerBlock = _initialRewardPerBlock;
+    }
+
+    function setKeepPercent(uint _keepPercent) public onlyOwner {
+        require(_keepPercent > 0 , "Ali::setKeepPercent: _keepPercent must be greater 0");
+        require(_keepPercent <= 100 , "Ali::setKeepPercent: _keepPercent must be less or equal 100");
+        keepPercent = _keepPercent;
+    }
+
+    function setBlockPerPeriod(uint _blockPerPeriod) public onlyOwner {
+        require(blockPerPeriod > 0 , "Ali::setBlockPerPeriod: _blockPerPeriod must be greater 0");
+        blockPerPeriod = _blockPerPeriod;
+    }
+    
 }
