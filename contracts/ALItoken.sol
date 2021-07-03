@@ -13,17 +13,20 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     uint public startBlock;
     uint public keepPercent = 80; // The amount of tokens distributed in the next period is 80% of the previous period
 
-    uint public initialRewardPerBlock = 4052511416000000000; // scaled by 1e18. That means about 4.052511416 ALI per block in the first period
+    uint public initialRewardPerBlock = 5000000000000000000;//4052511416000000000; // scaled by 1e18. That means about 4.052511416 ALI per block in the first period
 
     uint public maxiumPeriodIndex = 9; // Only distribute ALI tokens in 10 periods
 
-    uint public blockPerPeriod = 5256000; // About 3 seconds for a block on Binance Smart Chain. A period is about 6 months.
+    uint public blockPerPeriod = 600;//5256000; // About 3 seconds for a block on Binance Smart Chain. A period is about 6 months.
 
     uint public maxSupply = 100000000000000000000000000; // scaled by 1e18. That means 100,000,000 ALI
 
     address public masterChef;
     address public incentive;
     address public keeper; // first token holder when token is initialized
+
+    uint public incentiveWeight;
+    uint public masterChefWeight;
 
     /**
      * @dev Throws if called by any account other than the masterChef or incentive.
@@ -38,9 +41,11 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
      * @param _keeper who holds the first minted tokens when initialized
      * @param _amount the minted token amount is sent to keeper
      */
-    constructor(uint _startBlock, address _keeper, uint _amount) public{
+    constructor(uint _startBlock, address _keeper, uint _amount, uint _incentiveWeight, uint _masterChefWeight) public{
         startBlock = _startBlock < block.number ? block.number : _startBlock;
         keeper = _keeper;
+        incentiveWeight = _incentiveWeight;
+        masterChefWeight = _masterChefWeight;
         _mintForKeeper(_amount);
     }
 
@@ -68,6 +73,26 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     function setIncentive(address _incentive) public onlyOwner{
         require(_incentive != address(0));
         incentive = _incentive;
+    }
+
+    function setMasterChefWeight(uint _masterchefWeight) public onlyOwner{
+        require(_masterchefWeight > 0, "ALI: invalid weight");
+        require(_masterchefWeight <= 100, "ALI: invalid weight");
+        masterChefWeight = _masterchefWeight;
+    }
+
+    function setIncentiveWeight(uint _incentiveWeight) public onlyOwner{
+        require(_incentiveWeight > 0, "ALI: invalid weight");
+        require(_incentiveWeight <= 100, "ALI: invalid weight");
+        incentiveWeight = _incentiveWeight;
+    }
+
+    function getMasterChefWeight() external view returns(uint) {
+        return masterChefWeight;
+    }
+
+    function getIncentiveWeight() external view returns(uint) {
+        return incentiveWeight;
     }
     
     function mint(address _to, uint256 _amount) public onlyWhitelist {
