@@ -29,6 +29,8 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     uint public incentiveWeight;
     uint public masterChefWeight;
 
+    event MintForKeeper(address indexed from, address indexed to, uint256 value);
+
     /**
      * @dev Throws if called by any account other than the masterChef or incentive.
      */
@@ -108,7 +110,8 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     function _mintForKeeper(uint256 _amount) private {
         require(keeper != address(0), 'Ali::_mintForKeeper: keeper to the zero address');
         uint mintAmount = _amount.add(totalSupply()) > maxSupply ? maxSupply.sub(totalSupply()) : _amount;
-        _mint(keeper, mintAmount);  
+        _mint(keeper, mintAmount);
+        emit MintForKeeper(address(0), keeper, mintAmount);
     }
 
     // Copied and modified from YAM code:
