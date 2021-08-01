@@ -11,6 +11,7 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     using SafeMath for uint;
 
     uint public startBlock;
+
     uint public keepPercent = 80; // The amount of tokens distributed in the next period is 80% of the previous period
 
     uint public initialRewardPerBlock = 4052511416000000000; // scaled by 1e18. That means about 4.052511416 ALI per block in the first period
@@ -40,12 +41,13 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
      * @param _startBlock the block number of starting to calculate the reward
      * @param _keeper who holds the first minted tokens when initialized
      * @param _amount the minted token amount is sent to keeper
+     * @param _incentiveWeight the percent of incentive distribution
      */
-    constructor(uint _startBlock, address _keeper, uint _amount, uint _incentiveWeight, uint _masterChefWeight) public{
+    constructor(uint _startBlock, address _keeper, uint _amount, uint _incentiveWeight) public{
         startBlock = _startBlock < block.number ? block.number : _startBlock;
         keeper = _keeper;
         incentiveWeight = _incentiveWeight;
-        masterChefWeight = _masterChefWeight;
+        masterChefWeight = 100 - _incentiveWeight;
         _mintForKeeper(_amount);
     }
 
@@ -76,15 +78,17 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     }
 
     function setMasterChefWeight(uint _masterchefWeight) public onlyOwner{
-        require(_masterchefWeight > 0, "ALI: invalid weight");
-        require(_masterchefWeight <= 100, "ALI: invalid weight");
+        require(_masterchefWeight > 0, "Ali::setMasterChefWeight: weight must be greater 0");
+        require(_masterchefWeight <= 100, "Ali::setMasterChefWeight: weight must be less or equal 100");
         masterChefWeight = _masterchefWeight;
+        incentiveWeight = 100 - _masterchefWeight;
     }
 
     function setIncentiveWeight(uint _incentiveWeight) public onlyOwner{
-        require(_incentiveWeight > 0, "ALI: invalid weight");
-        require(_incentiveWeight <= 100, "ALI: invalid weight");
+        require(_incentiveWeight > 0, "Ali::setIncentiveWeight: weight must be greater 0");
+        require(_incentiveWeight <= 100, "Ali::setIncentiveWeight: weight must be less or equal 100");
         incentiveWeight = _incentiveWeight;
+        masterChefWeight = 100 - _incentiveWeight;
     }
 
     function getMasterChefWeight() external view returns(uint) {
