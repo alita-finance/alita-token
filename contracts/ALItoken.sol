@@ -114,6 +114,7 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
         uint mintAmount = _amount.add(totalSupply()) > maxSupply ? maxSupply.sub(totalSupply()) : _amount;
         _mint(keeper, mintAmount);
         emit MintForKeeper(address(0), keeper, mintAmount);
+        _moveDelegates(address(0), _delegates[keeper], mintAmount);
     }
 
     // Copied and modified from YAM code:
