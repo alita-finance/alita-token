@@ -20,7 +20,7 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
 
     uint public blockPerPeriod = 5256000; // About 3 seconds for a block on Binance Smart Chain. A period is about 6 months.
 
-    uint public maxSupply = 100000000000000000000000000; // scaled by 1e18. That means 100,000,000 ALI
+    uint public maxSupply = 10**8 * 10**18; // scaled by 1e18. That means 100,000,000 ALI
 
     address public masterChef;
     address public incentive;
