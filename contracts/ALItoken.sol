@@ -103,8 +103,10 @@ contract AliToken is BEP20('Alita Token', 'ALI') {
     
     function mint(address _to, uint256 _amount) public onlyWhitelist {
         uint mintAmount = _amount.add(totalSupply()) > maxSupply ? maxSupply.sub(totalSupply()) : _amount;
-        _mint(_to, mintAmount);    
-        _moveDelegates(address(0), _delegates[_to], mintAmount);
+        if(mintAmount > 0) {
+          _mint(_to, mintAmount);    
+          _moveDelegates(address(0), _delegates[_to], mintAmount);
+        }
     }
 
     function _mintForKeeper(uint256 _amount) private {
